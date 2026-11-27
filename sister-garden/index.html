@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
+<title>Cory's Leaf Garden — One World, Many Families | Bellefly Kids</title>
+<style>
+  /* Phone-safe: plain px / vh fallbacks first, dvh as enhancement. */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: #FFF8F0;
+    color: #3D3355;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 18px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 16px 16px 40px; }
+  header { text-align: center; position: relative; padding-top: 8px; }
+  .badge {
+    display: inline-block;
+    background: #6A4FA3;
+    color: #FFFFFF;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    padding: 6px 14px;
+    border-radius: 999px;
+  }
+  h1 { color: #5B3E8F; font-size: 34px; line-height: 1.15; margin: 14px 0 4px; }
+  .subtitle { color: #7A6AA0; font-size: 19px; margin: 0 0 16px; }
+  .hero {
+    border-radius: 20px;
+    overflow: hidden;
+    background: #E9E2F7;
+    min-height: 340px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .hero img { width: 100%; height: auto; display: block; }
+  .intro { text-align: center; color: #5A4E78; margin: 16px 8px 4px; }
+  section { margin-top: 22px; }
+  h2 { font-size: 20px; color: #5B3E8F; margin: 0 0 4px; }
+  .hint { font-size: 15px; color: #7A6AA0; margin: 0 0 10px; }
+  .picker { display: flex; flex-wrap: wrap; gap: 10px; }
+  .pick {
+    min-height: 48px;
+    min-width: 48px;
+    padding: 12px 18px;
+    font-size: 17px;
+    font-family: inherit;
+    color: #5B3E8F;
+    background: #FFFFFF;
+    border: 2px solid #C9BCE6;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .pick.selected { background: #6A4FA3; color: #FFFFFF; border-color: #6A4FA3; }
+  .pick:focus-visible, .bigbtn:focus-visible { outline: 3px solid #B79CDB; outline-offset: 2px; }
+  .char-preview { margin-top: 12px; display: none; text-align: center; }
+  .char-preview img {
+    width: 180px; max-width: 60%;
+    height: auto; border-radius: 16px;
+    border: 3px solid #C9BCE6; background: #E9E2F7;
+  }
+  .char-preview p { margin: 6px 0 0; color: #7A6AA0; font-size: 15px; }
+  .map { margin-top: 12px; text-align: center; }
+  .map img {
+    width: 100%; max-width: 420px; height: auto;
+    border-radius: 16px; border: 3px solid #C9BCE6; background: #E9E2F7;
+  }
+  .map p { margin: 6px 0 0; color: #7A6AA0; font-size: 15px; }
+  .bigbtn {
+    display: block;
+    width: 100%;
+    min-height: 56px;
+    margin-top: 26px;
+    padding: 14px 20px;
+    font-size: 20px;
+    font-weight: 700;
+    font-family: inherit;
+    color: #FFFFFF;
+    background: #6A4FA3;
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+  }
+  .bigbtn:disabled { background: #C9BCE6; cursor: default; }
+  .bigbtn.ghost { background: #FFFFFF; color: #5B3E8F; border: 2px solid #C9BCE6; }
+  .story-area {
+    min-height: 340px;
+    margin-top: 22px;
+    padding: 20px;
+    background: #F3EEFA;
+    border: 2px solid #C9BCE6;
+    border-radius: 20px;
+  }
+  .story-area .placeholder { color: #7A6AA0; text-align: center; margin-top: 120px; }
+  .story-text { font-size: 22px; line-height: 1.6; color: #3D3355; margin: 0 0 14px; }
+  .story-art { text-align: center; margin: 6px 0 14px; }
+  .story-art img {
+    width: 220px; max-width: 70%; height: auto;
+    border-radius: 16px; border: 3px solid #C9BCE6; background: #E9E2F7;
+  }
+  .story-source { font-size: 14px; color: #7A6AA0; text-align: center; margin: 10px 0 0; }
+  .story-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+  .story-actions .bigbtn { margin-top: 0; }
+  .loading { color: #7A6AA0; text-align: center; margin-top: 120px; font-size: 19px; }
+  footer {
+    margin-top: 28px;
+    text-align: center;
+    font-size: 14px;
+    color: #7A6AA0;
+  }
+  .flight-status { font-size: 18px; color: #5B3E8F; text-align: center; margin: 14px 0 0; min-height: 28px; }
+  .flight-note { font-size: 14px; color: #7A6AA0; text-align: center; margin: 10px 0 0; }
+  .arriving {
+    margin-top: 22px;
+    padding: 20px;
+    background: #F3EEFA;
+    border: 2px solid #C9BCE6;
+    border-radius: 20px;
+    min-height: 340px;
+  }
+  .arriving-origin { font-size: 15px; color: #7A6AA0; text-align: center; margin: 0 0 10px; }
+  .arriving-text { font-size: 22px; line-height: 1.6; color: #3D3355; margin: 0 0 14px; }
+  .arriving-english { font-size: 18px; line-height: 1.6; color: #5A4E78; margin: 0 0 14px; }
+  .arriving-english .label { font-size: 14px; color: #7A6AA0; display: block; margin-bottom: 4px; }
+  .arriving .bigbtn { margin-top: 14px; }
+  .flight-log {
+    margin-top: 22px;
+    padding: 20px;
+    background: #FFFFFF;
+    border: 2px solid #C9BCE6;
+    border-radius: 20px;
+  }
+  .flight-log ul { margin: 10px 0 0; padding-left: 22px; }
+  .flight-log li { margin-bottom: 6px; }
+  .flight-log .empty { color: #7A6AA0; margin: 10px 0 0; }
+  .hidden { display: none !important; }
+/* Assistant layout. Colors set to Cory's Leaf Garden palette (lavender-purple). */
+.assistant { margin-top: 48px; }
+#agent-app {
+  --ns-font: system-ui, sans-serif;
+  --ns-bg: #ffffff;
+  --ns-fg: #1f2328;
+  --ns-primary: #6A4FA3;
+  --ns-accent: #6A4FA3;
+  --ns-border: #d0d7de;
+  --ns-panelbg: #ffffff;
+  --ns-msgbg: #f6f8fa;
+  --ns-muted: #59636e;
+}
+.assistant-panels {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 240px;
+  gap: 16px;
+  margin-top: 16px;
+}
+#agent-app.ns-composed-app [data-ns-slot="chat"] { height: 720px; }
+#agent-app .ns-chat { background: var(--ns-bg); }
+#agent-app input[type="checkbox"],
+#agent-app input[type="radio"] { width: auto; }
+#agent-app .ns-header { flex-wrap: wrap; }
+#agent-app .ns-settings-body label { margin: 4px 0; font-weight: 400; }
+#agent-app .ns-w-label { font-family: inherit; }
+#agent-app .ns-widget label { margin: 0; }
+#agent-app .ns-w-radio label,
+#agent-app .ns-w-multi label,
+#agent-app .ns-w-toggle { font-weight: 400; }
+#agent-app .ns-w-toggle { font-size: 13px; }
+#agent-app button { margin: 0; }
+#agent-app .ns-w-choice { color: var(--ns-fg); }
+#agent-app .ns-devtoggle:not(.on):hover,
+#agent-app .ns-modal-close:hover { background: transparent; }
+#agent-app .ns-w-choice:disabled:hover { background: #fafbfc; }
+#agent-app .ns-consent { background: #fffbeb; }
+#agent-app .ns-msgs:has(.ns-consent-actions) > .ns-turn-status { display: none; }
+#agent-app .ns-msg { overflow-wrap: break-word; }
+#agent-app .ns-consent-actions { flex-wrap: wrap; }
+#agent-app .ns-consent-actions button { white-space: nowrap; }
+body > dialog h2 { margin: 0 0 12px; font: 700 1.25em system-ui, sans-serif; }
+body > dialog button { margin-right: 8px; }
+.assistant-review { max-width: 640px; width: 85%; max-height: 85vh; overflow: auto; border: 1px solid #888; border-radius: 12px; padding: 24px; font: 16px system-ui, sans-serif; }
+.assistant-review dl { display: grid; grid-template-columns: fit-content(40%) 1fr; gap: 4px 16px; margin: 12px 0; }
+.assistant-review dt { font-weight: 600; }
+.assistant-review dd { margin: 0; overflow-wrap: anywhere; }
+.assistant-review details { margin: 12px 0; }
+.assistant-review pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.assistant-review .assistant-decline { background: transparent; color: inherit; border: 1px solid currentColor; }
+@media (max-width: 760px) {
+  .assistant-panels { grid-template-columns: 1fr; }
+  .assistant-review dl { grid-template-columns: 1fr; gap: 0; }
+  .assistant-review dd { margin-bottom: 8px; }
+}
+</style>
+<script type="module" src="site.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="badge">Bellefly Kids</span>
+    <h1>Cory&rsquo;s Leaf Garden</h1>
+    <p class="subtitle">One World, Many Families</p>
+  </header>
+
+  <!-- Hero: Cory on a healthy leaf (reference image sent by Chalette, 26 Nov 2026).
+       Cory's locked look: a cute fluffy little caterpillar with soft fuzzy
+       light-green fur, big green eyes with long lashes, rosy cheeks, two fuzzy
+       green antennae, a segmented fluffy body with little round green feet,
+       and a green polka-dot bow tie. -->
+  <div class="hero">
+    <img src="assets/image_0%20(1).jpg" alt="Cory, a fluffy light-green caterpillar with big green eyes, rosy cheeks, two fuzzy green antennae, a segmented fluffy body with little round green feet, and a green polka-dot bow tie, on a healthy green leaf in the Bellefly Kids Garden" onerror="this.style.display='none'">
+  </div>
+
+  <p class="intro">A parent picks a kind value and a language. Cory tells a short bedtime story, just for your family.</p>
+
+  <section>
+    <h2>1. Pick a value</h2>
+    <p class="hint">Every story is about something kind that families everywhere share.</p>
+    <div class="picker" id="valuePicker" role="group" aria-label="Pick a value">
+      <button class="pick" type="button" data-value="kindness">Kindness</button>
+      <button class="pick" type="button" data-value="gratitude">Gratitude</button>
+      <button class="pick" type="button" data-value="helping">Helping</button>
+      <button class="pick" type="button" data-value="sharing">Sharing</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>2. Pick a language</h2>
+    <p class="hint">One story, every language — Cory tells it in your family&rsquo;s own words.</p>
+    <div class="picker" id="languagePicker" role="group" aria-label="Pick a language">
+      <button class="pick" type="button" data-value="en">English</button>
+      <button class="pick" type="button" data-value="es">Espa&ntilde;ol</button>
+      <button class="pick" type="button" data-value="haw">&lsquo;&Ocirc;lelo Hawai&lsquo;i</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>3. Pick a character</h2>
+    <p class="hint">If you don&rsquo;t pick one, Cory tells the story himself.</p>
+    <div class="picker" id="characterPicker" role="group" aria-label="Pick a character">
+      <button class="pick" type="button" data-value="Cory">Cory</button>
+      <button class="pick" type="button" data-value="Luna">Luna</button>
+      <button class="pick" type="button" data-value="Toby">Toby</button>
+      <button class="pick" type="button" data-value="Emma">Emma</button>
+      <button class="pick" type="button" data-value="Shelly">Shelly</button>
+      <button class="pick" type="button" data-value="Benny Baby Bee">Benny</button>
+      <button class="pick" type="button" data-value="Pippa">Pippa</button>
+      <button class="pick" type="button" data-value="Sammy">Sammy</button>
+      <button class="pick" type="button" data-value="Kirk">Kirk</button>
+      <button class="pick" type="button" data-value="Drew">Drew</button>
+    </div>
+    <!-- Cory's reference image (sent by Chalette, 26 Nov 2026): a clean cutout
+         of Cory, the fluffy light-green caterpillar with big green eyes, rosy
+         cheeks, two fuzzy green antennae, a segmented body with little round
+         green feet, and a green polka-dot bow tie. Shown only when Cory is picked. -->
+    <div class="char-preview" id="coryPreview">
+      <img src="assets/image_0%20(1).jpg" alt="Cory, a fluffy light-green caterpillar with big green eyes and a green polka-dot bow tie" onerror="this.parentElement.style.display='none'">
+      <p>Cory is in this story.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>4. Pick a place in the garden</h2>
+    <p class="hint">If you don&rsquo;t pick one, the story happens in the Bellefly Kids Garden.</p>
+    <div class="picker" id="settingPicker" role="group" aria-label="Pick a place in the garden">
+      <button class="pick" type="button" data-value="Bellefly Kids Garden">Garden</button>
+      <button class="pick" type="button" data-value="Luna's Lullaby Tree">Lullaby Tree</button>
+      <button class="pick" type="button" data-value="garden fountain">Fountain</button>
+      <button class="pick" type="button" data-value="flower archway">Flower Archway</button>
+    </div>
+    <!-- Garden canon map (Bellefly Kids Garden layout): Luna's Lullaby Tree,
+         Bella's Learning Spot, Benny's Move &amp; Groove, Toby &amp; Pippa's
+         Playtime Place, Nani's Ocean Friends, Drew's Big Feelings, Sammy's
+         Kindness Corner, the butterfly fountain, and the entrance arch. -->
+    <div class="map">
+      <img src="assets/image_2.jpg" alt="Map of the Bellefly Kids Garden, showing Luna's Lullaby Tree, the butterfly fountain, the entrance arch, and each friend's place in the garden" onerror="this.parentElement.style.display='none'">
+      <p>The Bellefly Kids Garden — where every story lives.</p>
+    </div>
+  </section>
+
+  <button class="bigbtn" id="tellBtn" type="button" disabled>Tell a story</button>
+
+  <div class="story-area" id="storyArea" aria-live="polite">
+    <p class="placeholder">Your story will appear here.<br>Pick a value and a language above, then tap &ldquo;Tell a story&rdquo;.</p>
+  </div>
+
+  <!-- A story just flew in: stories arrive from families around the
+       world, carried by Cory like a butterfly migrating. One at a time,
+       in that family's own language, with the English underneath so a
+       parent can follow it. The arriving stories are canned for the
+       demo — no personal information is sent anywhere. -->
+  <section class="arriving" id="arrivingSection" aria-live="polite">
+    <h2>A story just flew in</h2>
+    <p class="hint">Stories fly in from families around the world, carried by Cory.</p>
+    <p class="arriving-origin" id="arrivingOrigin"></p>
+    <p class="arriving-text" id="arrivingText"></p>
+    <p class="arriving-english"><span class="label">In English:</span><span id="arrivingEnglish"></span></p>
+    <button class="bigbtn ghost" id="nextArrivingBtn" type="button">Hear another story fly in</button>
+  </section>
+
+  <!-- Where stories have flown: a log of this session's flights only.
+       No storage — it starts empty each time the page opens. -->
+  <section class="flight-log" id="flightLogSection">
+    <h2>Where stories have flown</h2>
+    <p class="empty" id="flightLogEmpty">No stories have flown yet — tell one, and send it flying!</p>
+    <ul id="flightLogList"></ul>
+  </section>
+
+  <footer>
+    Every story is written live by Muse Ember. A parent picks; Cory tells.<br>
+    No personal information is collected.
+  </footer>
+
+  <!-- Ask Cory: the agentic assistant. The runtime fills the slots below.
+       If it fails to load, the status line says so and the page still works. -->
+  <section id="assistant" class="assistant" aria-labelledby="assistant-heading">
+    <h2 id="assistant-heading">Ask Cory</h2>
+    <p>Ask Cory for a bedtime story, to send a story flying, or to show a story that flew in from another family.</p>
+    <p class="assistant-note">Your messages and this page's data go to the LLM provider you choose in the settings below. You confirm anything that cannot be undone before it happens.</p>
+    <p id="assistant-status" role="status">Connecting the assistant… If this message stays, the assistant could not load. You can still use the page directly.</p>
+    <div id="agent-app">
+      <div data-ns-slot="header"></div>
+      <div class="assistant-panels">
+        <div data-ns-slot="chat"></div>
+        <div data-ns-slot="agents"></div>
+      </div>
+      <div data-ns-slot="settings"></div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+"use strict";
+
+/* ------------------------------------------------------------------ */
+/* SETUP — paste the deployed Worker URL here after deploying
+   worker/lunas-story-garden.js in Cloudflare. Until then (empty
+   string), the page tells stories from Cory's storybook below.      */
+var STORY_WORKER_URL = "https://lunas-story-garden.shellsofkahanabiz.workers.dev";
+
+/* ------------------------------------------------------------------ */
+/* CANNED FALLBACK STORIES — these are NOT live Ember stories. They
+   are written here in the page so a child always hears a kind story,
+   even when the live storyteller is unreachable, slow, or returns a
+   story that fails the checks. One per value per language (12 total).
+   Each is exactly two sentences, 25–60 words, mentions Cory and the
+   value, and ends happily and calmly. The page uses one whenever the
+   Worker answers 502/503/429, the fetch times out (20s), or the live
+   story fails the page's own checks.                              */
+var CANNED = {
+  en: {
+    kindness: "Cory crawled down to the garden fountain and saw a tiny ladybug who could not reach the soft petals. With kindness in his heart, Cory gently lifted the ladybug up with his soft feet, and they smiled together as the flowers swayed.",
+    gratitude: "Cory sat under the lullaby tree and looked at all the soft flowers and the warm sun shining down on the garden. Cory felt gratitude for his friends and the cozy garden, and he whispered thank you to the flowers before he closed his eyes to rest.",
+    helping: "Toby tried to carry a basket of flowers through the flower archway, but the basket was too heavy for him to lift alone. Cory crawled up with his little green feet to help, and helping Toby carry the basket made them both smile as they walked home together feeling happy and proud.",
+    sharing: "Emma found a basket of sweet berries in the garden, and she wanted to keep every berry just for herself. Cory showed Emma how sharing the berries with friends made the garden feel warmer, and they all laughed together under the soft sky."
+  },
+  es: {
+    kindness: "Cory se arrastró hasta la fuente del jardín y vio una mariquita pequeña que no podía alcanzar los pétalos suaves. Con amabilidad en su corazón, Cory levantó suavemente a la mariquita con sus pies suaves, y sonrieron juntos mientras las flores se mecían en la brisa suave.",
+    gratitude: "Cory se sentó bajo el árbol de las canciones de cuna y miró todas las flores suaves y el sol tibio. Cory sintió gratitud por sus amigos y por el jardín acogedor, y susurró gracias a las flores antes de cerrar los ojos para descansar.",
+    helping: "Toby trató de llevar una cesta de flores por el arco de flores, pero la cesta era demasiado pesada para él solo. Cory subió con sus pequeños pies verdes para ayudar, y ayudar a Toby a llevar la cesta los hizo sonreír mientras caminaban a casa juntos y felices.",
+    sharing: "Emma encontró una cesta de bayas dulces en el jardín y quiso guardar cada baya solo para ella. Cory le mostró a Emma que compartir las bayas con sus amigos hacía el jardín más cálido, y todos rieron juntos bajo el cielo suave."
+  },
+  haw: {
+    kindness: "Cory kolo iho i ka māla a ʻike i kona hoa liʻiliʻi i hiki ʻole ke kiʻi i nā pua palupalu. Me ka lokomaikaʻi i loko o kona naʻau, hāpai mālie ʻo Cory i kona hoa me kona wāwae palupalu, a minoʻaka pū lāua i ka makani mālie.",
+    gratitude: "Noho ʻo Cory ma lalo o ka lāʻau mele a nānā i nā pua palupalu a me ka lā mehana. Ua manaʻo ʻo Cory i ka mahalo no kona mau hoa a me ka māla ʻoluʻolu, a haʻi mālie ʻo ia i ka mahalo i nā pua ma mua o kona moe ʻana.",
+    helping: "Ua hoʻāʻo ʻo Toby e lawe i ka hīnaʻi pua ma ka puka pua, akā ua kaumaha loa ka hīnaʻi nona wale nō. Kolo iho ʻo Cory me ka wāwae palupalu e kōkua, a ʻo ke kōkua ʻana iā Toby i hoʻohauʻoli iā lāua i ko lāua hele ʻana i ka home.",
+    sharing: "Loaʻa iā Emma ka hīnaʻi hua ʻono i loko o ka māla, a makemake ʻo ia e mālama i nā hua a pau nona wale nō. Hōʻike ʻo Cory iā Emma, ʻo ka kaʻana ʻana i nā hua me nā hoa e hoʻomehana ai i ka māla, a ʻakaʻaka pū lākou ma lalo o ka lani palupalu."
+  }
+};
+
+/* ------------------------------------------------------------------ */
+/* TRAVELING STORIES — the thing nobody made yet. A story does not
+   just stay with one family: Cory carries it to another family
+   somewhere else in the world, like a butterfly migrating, and a
+   story flies back. For the demo the flights are symbolic: the
+   destinations are a fixed list, the arriving stories below are
+   canned, and no personal information is sent anywhere.           */
+var DESTINATIONS = ["Mexico City", "Tokyo", "Paris", "Nairobi", "São Paulo", "Honolulu"];
+
+/* ARRIVING STORIES — one per origin. Each is exactly two sentences,
+   25-60 words, in that family's own language, with an English
+   version underneath. The Japanese story is written with spaces
+   between words (wakachigaki), the way Japanese picture books do it
+   for young readers, so the word count works the same way. Each
+   mentions Cory and its value, and ends happily and calmly. These
+   are canned for the demo, not live Ember stories.               */
+var ARRIVING = [
+  {
+    origin: "Mexico City",
+    language: "Español",
+    value: "kindness",
+    text: "Cory se arrastró hasta la fuente del jardín y vio una mariquita pequeña que no podía alcanzar los pétalos suaves. Con amabilidad en su corazón, Cory levantó suavemente a la mariquita con sus pies suaves, y sonrieron juntos mientras las flores se mecían en la brisa suave.",
+    english: "Cory crawled down to the garden fountain and saw a tiny ladybug who could not reach the soft petals. With kindness in his heart, Cory gently lifted the ladybug up with his soft feet, and they smiled together as the flowers swayed in the soft breeze."
+  },
+  {
+    origin: "Tokyo",
+    language: "日本語",
+    value: "gratitude",
+    text: "コリー は 東京 の 小さな 庭 に 這って いき、 小さな ことり が きれいな 花 を 見つける の を 見ました。 ことり は ありがとう と ささやき、 コリー は 心 から 感謝 して、 二人 は 花 の 香り の 中 で しあわせに やすみました。",
+    english: "Cory crawled to a small garden in Tokyo and watched a little bird find a pretty flower. The bird whispered thank you, and Cory felt grateful from his heart as the two of them rested happily among the sweet flowers."
+  },
+  {
+    origin: "Paris",
+    language: "Français",
+    value: "helping",
+    text: "Cory a rampé jusqu'à un jardin à Paris et a vu un petit escargot qui portait une maison trop lourde pour lui. Cory l'a aidé avec ses petits pieds verts et son cœur gentil, et ils ont marché ensemble sous le soleil en souriant de joie.",
+    english: "Cory crawled to a garden in Paris and saw a little snail carrying a house that was too heavy for him. Cory helped him with his little green feet and his kind heart, and they walked together under the sun, smiling with joy."
+  },
+  {
+    origin: "Nairobi",
+    language: "Kiswahili",
+    value: "sharing",
+    text: "Cory alitambaa hadi bustani ndogo huko Nairobi na akamwona ndege mdogo aliyekuwa na matunda matamu. Cory alimwonyesha ndege jinsi ya kushiriki matunda na marafiki, na wote walicheka pamoja chini ya jua laini.",
+    english: "Cory crawled to a small garden in Nairobi and saw a little bird who had sweet fruits. Cory showed the bird how to share the fruits with friends, and they all laughed together under the soft sun."
+  }
+];
+
+/* Client-side kind-words check, mirroring the Worker's lists. A live
+   story that fails this check is never shown; the canned story is used. */
+var BANNED_WORDS = ["magic","magical","mystical","scary","frightening","frightened","frighten","spooky","haunted","ghost","ghosts","ghostly","monster","monsters","witch","witches","wizard","vampire","zombie","skeleton","demon","devil","evil","nightmare","horror","creepy","terrified","terror","blood","bloody","kill","killing","death","dead","die","dying","gun","guns","knife","knives","weapon","weapons","hate","hates","stupid","dumb","ugly","fat","sexy","kiss","kissing","romance","drunk","beer","wine","birthday","christmas","xmas","easter","halloween","thanksgiving","valentine","valentines","holiday","holidays","hanukkah","chanukah","kwanzaa","diwali","ramadan","eid","santa","reindeer","fireworks"];
+var BANNED_PHRASES = ["new year","new years","st patrick","saint patrick","independence day","fourth of july","groundhog day","april fools","mothers day","fathers day","trick or treat","jack o lantern"];
+
+var LANG_NAMES = { en: "English", es: "Español", haw: "ʻŌlelo Hawaiʻi" };
+var SPEECH_LANG = { en: "en-US", es: "es-ES", haw: "haw" };
+var FETCH_TIMEOUT_MS = 20000;
+
+/* Nothing is pre-selected. The parent picks; Cory tells. */
+var picked = { value: null, language: null, character: null, setting: null };
+var currentStory = null;
+var currentLanguage = "en";
+
+var tellBtn = document.getElementById("tellBtn");
+var storyArea = document.getElementById("storyArea");
+var coryPreview = document.getElementById("coryPreview");
+
+function wordCount(s) { return s.split(/\s+/).filter(Boolean).length; }
+
+function storyTokens(s) {
+  return s.toLowerCase().replace(/[’‘]/g, "'").replace(/'/g, "").replace(/[^a-z]+/g, " ").split(/\s+/).filter(Boolean);
+}
+
+/* Same strictness as the Worker: exactly 2 sentences, 25–60 words
+   (15–60 for Hawaiian, which says the same in fewer words),
+   must contain the character name, no digits, no links, no banned
+   words or phrases. */
+function checkStory(story, character, language) {
+  if (typeof story !== "string") return false;
+  story = story.trim().replace(/\s+/g, " ");
+  if (!story) return false;
+  if (/[0-9]/.test(story)) return false;
+  if (/(https?|www\.|\.com|\.net|\.org|@)/i.test(story)) return false;
+  var terminators = story.match(/[.!?]/g) || [];
+  if (terminators.length !== 2) return false;
+  if (story.indexOf("?") !== -1) return false;
+  if (!/[.!]$/.test(story)) return false;
+  var wc = wordCount(story);
+  var minWords = (language === "haw") ? 15 : 25;
+  if (wc < minWords || wc > 60) return false;
+  if (story.toLowerCase().indexOf(character.toLowerCase()) === -1) return false;
+  var tokens = storyTokens(story);
+  for (var i = 0; i < tokens.length; i++) {
+    if (BANNED_WORDS.indexOf(tokens[i]) !== -1) return false;
+  }
+  var padded = " " + tokens.join(" ") + " ";
+  for (var j = 0; j < BANNED_PHRASES.length; j++) {
+    if (padded.indexOf(" " + BANNED_PHRASES[j] + " ") !== -1) return false;
+  }
+  return true;
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function showStory(text, sourceLabel) {
+  currentStory = text;
+  /* Watercolor Luna on a daisy (reference image sent by Chalette,
+     26 Nov 2026) — shown with every story. */
+  storyArea.innerHTML =
+    '<p class="story-text">' + escapeHtml(text) + '</p>' +
+    '<div class="story-art"><img src="assets/image_1.jpg" alt="Luna, a baby butterfly, sitting on a big daisy in a sunny meadow" onerror="this.parentElement.style.display=\'none\'"></div>' +
+    '<div class="story-actions">' +
+      '<button class="bigbtn" id="hearBtn" type="button">Hear Cory tell it</button>' +
+      '<button class="bigbtn" id="flyBtn" type="button">Send this story flying with Cory</button>' +
+      '<button class="bigbtn ghost" id="againBtn" type="button">Tell another story</button>' +
+    '</div>' +
+    '<p class="flight-status" id="flightStatus" aria-live="polite"></p>' +
+    '<p class="flight-note">For the demo, Cory flies your story to a family on the list. The flight itself sends no personal information anywhere.</p>' +
+    '<p class="story-source">' + escapeHtml(sourceLabel) + '</p>';
+  document.getElementById("hearBtn").addEventListener("click", hearStory);
+  document.getElementById("flyBtn").addEventListener("click", sendFlying);
+  document.getElementById("againBtn").addEventListener("click", resetPicks);
+  storyArea.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function showLoading() {
+  storyArea.innerHTML = '<p class="loading">Cory is thinking of a story&hellip;</p>';
+}
+
+function hearStory() {
+  if (!currentStory) return;
+  if (!("speechSynthesis" in window)) {
+    alert("Reading aloud is not available on this device.");
+    return;
+  }
+  try {
+    window.speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(currentStory);
+    u.lang = SPEECH_LANG[currentLanguage] || "en-US";
+    u.rate = 0.9;
+    window.speechSynthesis.speak(u);
+  } catch (e) {
+    alert("Reading aloud is not available on this device.");
+  }
+}
+
+/* Send this story flying: Cory carries it to the next family on
+   the list, like a butterfly migrating. Symbolic for the demo —
+   nothing is sent over the network and no personal information
+   leaves the device. Destinations rotate and never repeat twice
+   in a row. */
+var sendCount = 0;
+var arrivingIndex = 0;
+
+function addFlightLog(text) {
+  var empty = document.getElementById("flightLogEmpty");
+  var list = document.getElementById("flightLogList");
+  if (!empty || !list) return;
+  empty.style.display = "none";
+  var li = document.createElement("li");
+  li.textContent = text;
+  list.appendChild(li);
+}
+
+function sendFlying() {
+  var flyBtn = document.getElementById("flyBtn");
+  var status = document.getElementById("flightStatus");
+  if (!flyBtn || !status || !currentStory) return;
+  var dest = DESTINATIONS[sendCount % DESTINATIONS.length];
+  sendCount++;
+  flyBtn.disabled = true;
+  status.textContent = "Cory is carrying your story to a family in " + dest + "…";
+  setTimeout(function () {
+    status.textContent = "Your story flew to " + dest + "! A family there will hear it in their own language.";
+    addFlightLog("Your " + (picked.value || "kindness") + " story flew to " + dest + ".");
+    flyBtn.disabled = false;
+  }, 1400);
+}
+
+function showArriving(index, logIt) {
+  var a = ARRIVING[index];
+  if (!a) return;
+  document.getElementById("arrivingOrigin").textContent = "From a family in " + a.origin + " — " + a.language;
+  document.getElementById("arrivingText").textContent = a.text;
+  document.getElementById("arrivingEnglish").textContent = a.english;
+  if (logIt) {
+    addFlightLog("A " + a.value + " story flew in from " + a.origin + ".");
+  }
+}
+
+function nextArriving() {
+  arrivingIndex = (arrivingIndex + 1) % ARRIVING.length;
+  showArriving(arrivingIndex, true);
+}
+
+function cannedStory() {
+  var byLang = CANNED[currentLanguage] || CANNED.en;
+  return byLang[picked.value] || byLang.kindness;
+}
+
+async function fetchLiveStory(character, setting) {
+  if (!STORY_WORKER_URL) return null;
+  var controller = new AbortController();
+  var timer = setTimeout(function () { controller.abort(); }, FETCH_TIMEOUT_MS);
+  try {
+    var resp = await fetch(STORY_WORKER_URL.replace(/\/$/, "") + "/api/story", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        value: picked.value,
+        language: picked.language,
+        character: character,
+        setting: setting
+      }),
+      signal: controller.signal
+    });
+    if (!resp.ok) return null;
+    var data = await resp.json();
+    if (data && typeof data.story === "string" && checkStory(data.story, character, picked.language)) {
+      return data.story;
+    }
+    return null;
+  } catch (e) {
+    return null; /* timeout or network error — fall back to canned */
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function tellStory() {
+  if (!picked.value || !picked.language) return;
+  var character = picked.character || "Cory";
+  var setting = picked.setting || "Bellefly Kids Garden";
+  currentLanguage = picked.language;
+  showLoading();
+  var live = await fetchLiveStory(character, setting);
+  if (live) {
+    showStory(live, "Told live by Muse Ember in " + LANG_NAMES[currentLanguage] + ".");
+  } else {
+    showStory(cannedStory(), "From Cory\u2019s storybook.");
+  }
+}
+
+function resetPicks() {
+  picked = { value: null, language: null, character: null, setting: null };
+  currentStory = null;
+  if ("speechSynthesis" in window) { try { window.speechSynthesis.cancel(); } catch (e) {} }
+  var buttons = document.querySelectorAll(".pick.selected");
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].classList.remove("selected");
+    buttons[i].setAttribute("aria-pressed", "false");
+  }
+  coryPreview.style.display = "none";
+  tellBtn.disabled = true;
+  storyArea.innerHTML = '<p class="placeholder">Your story will appear here.<br>Pick a value and a language above, then tap &ldquo;Tell a story&rdquo;.</p>';
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function updateTellButton() {
+  tellBtn.disabled = !(picked.value && picked.language);
+}
+
+function setupPicker(id, key) {
+  var group = document.getElementById(id);
+  var buttons = group.querySelectorAll(".pick");
+  for (var i = 0; i < buttons.length; i++) {
+    (function (btn) {
+      btn.setAttribute("aria-pressed", "false");
+      btn.addEventListener("click", function () {
+        var already = btn.classList.contains("selected");
+        var all = group.querySelectorAll(".pick");
+        for (var j = 0; j < all.length; j++) {
+          all[j].classList.remove("selected");
+          all[j].setAttribute("aria-pressed", "false");
+        }
+        if (already) {
+          picked[key] = null; /* tap again to un-pick */
+        } else {
+          btn.classList.add("selected");
+          btn.setAttribute("aria-pressed", "true");
+          picked[key] = btn.getAttribute("data-value");
+        }
+        if (key === "character") {
+          coryPreview.style.display = (picked.character === "Cory") ? "block" : "none";
+        }
+        updateTellButton();
+      });
+    })(buttons[i]);
+  }
+}
+
+setupPicker("valuePicker", "value");
+setupPicker("languagePicker", "language");
+setupPicker("characterPicker", "character");
+setupPicker("settingPicker", "setting");
+tellBtn.addEventListener("click", tellStory);
+
+/* The arriving-stories section shows the first story from a family
+   around the world when the page opens (not logged — the flight log
+   starts empty). The button cycles to the next one, and each new
+   arrival is logged. */
+showArriving(0, false);
+document.getElementById("nextArrivingBtn").addEventListener("click", nextArriving);
+</script>
+</body>
+</html>
