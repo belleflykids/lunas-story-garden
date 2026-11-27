@@ -1,7 +1,7 @@
 // Luna's Story Garden: One World, Many Families — Ember-powered story Worker (Cloudflare Worker)
 // ============================================================================
-// Written 26 Nov 2026 for the SLAY HACKS 2026 entry
-// "Luna's Story Garden: One World, Many Families" (due Dec 7, 2026).
+// Written 26 Nov 2026 for the Open Agentic Web Challenge entry
+// "Luna's Story Garden: One World, Many Families" (due Jan 11, 2027).
 // A NEW project, not a resubmit of the Drew's Slime Storyteller. It reuses
 // the proven Ember/Worker pattern of the Slime Storyteller Worker
 // (drew-slime-storyteller.js): validate first, check the answer
@@ -66,7 +66,8 @@
 //      short text only, no banned words, no extra fields. Anything else
 //      is rejected with 400, before any API call.
 //   3) The Worker checks the model's story with strict rules (exactly
-//      two sentences, 25–60 words, must contain the character's name,
+//      two sentences, 25–60 words — 15–60 for Hawaiian, which says the
+//      same in fewer words — must contain the character's name,
 //      no banned words or phrases, no digits, no links), retries once
 //      on a format break, and logs every rejection. A bad story never
 //      reaches the page.
@@ -89,7 +90,16 @@ const MODEL = "muse-ember-1.0";
 const API_URL = "https://api.meta.ai/v1/chat/completions";
 const PRICE_INPUT_PER_M = 0.10; // USD per 1M input tokens
 const PRICE_OUTPUT_PER_M = 0.50; // USD per 1M output tokens
-const MAX_TOKENS = 200;
+// Minimum story length by language: Hawaiian says in fewer words
+// what takes 25+ in English, so a good Hawaiian story was being
+// rejected as "too short". English/Spanish stay at 25; Hawaiian 15.
+const MIN_WORDS_BY_LANGUAGE = { en: 25, es: 25, haw: 15 };
+const MAX_WORDS = 60;
+// 800, not 200: with reasoning_effort "minimal" the model still spends
+// tokens reasoning, and Luna's longer prompt needed more than 200 total —
+// the model hit the limit mid-thought (finish_reason "length") and returned
+// no story text at all. 800 leaves room for reasoning plus a 25-60 word story.
+const MAX_TOKENS = 800;
 const TEMPERATURE = 0.8;
 // VERIFIED ON THE SLIME STORYTELLER (24 Nov 2026): Ember accepts
 // reasoning_effort "minimal" — all live stories returned with it set.
@@ -185,7 +195,7 @@ function validateRequest(body) {
 // onto the wrong character. The banned-word lists are English words;
 // they are applied to every story as a safety net, whatever language
 // the story is in.
-function checkStory(story, character) {
+function checkStory(story, character, language) {
   if (typeof story !== "string" || typeof character !== "string") return { reason: "not strings" };
   story = story.trim().replace(/\s+/g, " ");
   character = character.trim().replace(/\s+/g, " ");
@@ -193,11 +203,18 @@ function checkStory(story, character) {
   if (/[0-9]/.test(story)) return { reason: "digits in story" };
   if (/(https?|www\.|\.com|\.net|\.org|@)/i.test(story)) return { reason: "link in story" };
   const terminators = story.match(/[.!?]/g) || [];
-  if (terminators.length !== 2) return { reason: "story is not exactly two sentences" };
+  // Hawaiian: Ember often tells a good story in one or three short
+  // sentences, so accept 1-3. English/Spanish stay at exactly two.
+  if (language === "haw") {
+    if (terminators.length < 1 || terminators.length > 3) return { reason: "story is not one to three sentences" };
+  } else if (terminators.length !== 2) {
+    return { reason: "story is not exactly two sentences" };
+  }
   if (story.indexOf("?") !== -1) return { reason: "story is a question" };
   if (!/[.!]$/.test(story)) return { reason: "story does not end with a period" };
+  const minWords = MIN_WORDS_BY_LANGUAGE[language] || 25;
   const wc = wordCount(story);
-  if (wc < 25 || wc > 60) return { reason: "story is not 25-60 words" };
+  if (wc < minWords || wc > MAX_WORDS) return { reason: "story is not " + minWords + "-" + MAX_WORDS + " words" };
   if (story.toLowerCase().indexOf(character.toLowerCase()) === -1) {
     return { reason: "story does not contain the character name" };
   }
@@ -214,7 +231,7 @@ function checkStory(story, character) {
 
 // Parse the model's raw text as JSON and run the strict story check.
 // Returns { ok: true, story } or { ok: false, reason, raw }.
-function parseModelText(text, character) {
+function parseModelText(text, character, language) {
   let parsed;
   try { parsed = JSON.parse(text.trim()); } catch (e) {
     return { ok: false, reason: "model returned bad JSON", raw: text };
@@ -222,7 +239,7 @@ function parseModelText(text, character) {
   if (!parsed || typeof parsed.story !== "string") {
     return { ok: false, reason: "bad format: no story field", raw: text };
   }
-  const checked = checkStory(parsed.story, character);
+  const checked = checkStory(parsed.story, character, language);
   if (checked.story) return { ok: true, story: checked.story };
   return { ok: false, reason: "bad format: " + checked.reason, raw: text };
 }
@@ -235,7 +252,8 @@ function buildSystemPrompt(request) {
     "Story — value: " + request.value + "; language: " + languageName + "; character: " + request.character + "; setting: " + request.setting + ".",
     "Tell the whole story IN " + languageName + ". Use that language's own words, naturally and correctly.",
     "Rules, all mandatory:",
-    "- Tell a story of exactly TWO sentences. No more, no fewer.",
+    "- " + (request.language === "haw" ? "Tell a story of one to three short sentences." : "Tell a story of exactly TWO sentences. No more, no fewer."),
+    "- " + (request.language === "haw" ? "Hawaiian says the same in fewer words, so about 15-25 words is right for this story — do not pad it out." : "Aim for about 25-60 words."),
     "- Mention the character's name, " + request.character + ".",
     "- The story is about " + request.value + " — show it in something kind the character does.",
     "- Set the story in " + request.setting + ".",
@@ -299,9 +317,9 @@ async function callModel(apiKey, request, retryNote) {
     const text = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
     if (!text || typeof text !== "string") {
       log("model_call", { model: MODEL, input_tokens: inputTokens, output_tokens: outputTokens, cost_usd: cost, ok: false, reason: "model returned no text" });
-      return { ok: false, reason: "model returned no text" };
+      return { ok: false, reason: "model returned no text", debug: { input_tokens: inputTokens, output_tokens: outputTokens, choices: (data && data.choices) ? data.choices.length : -1, raw: data ? JSON.stringify(data).slice(0, 300) : "no data" } };
     }
-    const parsed = parseModelText(text, request.character);
+    const parsed = parseModelText(text, request.character, request.language);
     log("model_call", {
       model: MODEL,
       input_tokens: inputTokens,
@@ -392,7 +410,7 @@ export default {
         : result.reason.slice("bad format: ".length);
       log("model_retry", { reason: result.reason, raw: (result.raw || "").slice(0, 120) });
       result = await callModel(env.META_API_KEY, req,
-        "Your last answer broke a format rule (" + rule + "). Return ONLY the JSON object {\"story\": \"...\"} with exactly two sentences, 25-60 words, containing the character name \"" + req.character + "\", in " + (LANGUAGE_NAMES[req.language] || "English") + ".");
+        "Your last answer broke a format rule (" + rule + "). Return ONLY the JSON object {\"story\": \"...\"} with " + (req.language === "haw" ? "one to three short sentences" : "exactly two sentences") + ", " + (MIN_WORDS_BY_LANGUAGE[req.language] || 25) + "-" + MAX_WORDS + " words, containing the character name \"" + req.character + "\", in " + (LANGUAGE_NAMES[req.language] || "English") + ".");
     }
     if (!result.ok) {
       log("story_rejection", { reason: result.reason, raw: (result.raw || "").slice(0, 120) });
@@ -411,6 +429,7 @@ export default {
 export {
   MODEL, API_URL, PRICE_INPUT_PER_M, PRICE_OUTPUT_PER_M,
   MAX_TOKENS, TEMPERATURE, REASONING_EFFORT,
+  MIN_WORDS_BY_LANGUAGE, MAX_WORDS,
   BANNED, ANSWER_BANNED_WORDS, ANSWER_BANNED_PHRASES,
   ALLOWED_VALUES, ALLOWED_LANGUAGES, ALLOWED_CHARACTERS, ALLOWED_SETTINGS,
   LANGUAGE_NAMES,

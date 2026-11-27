@@ -12,7 +12,7 @@ Inspired by MEPS, the Multilanguage Electronic Publishing System built by Jehova
 
 In the demo, the traveling exchange is symbolic: the arriving stories are canned, the destinations are a fixed list, and no personal information is sent anywhere. The live story generation is real; the flights show what the exchange will feel like.
 
-Built for **SLAY HACKS 2026** (deadline December 7, 2026). A new project — not a resubmit of the Drew's Slime Storyteller. It reuses the proven Ember/Worker pattern from that project: a thin, strict shell around one model call.
+Built for the **Open Agentic Web Challenge** (deadline January 11, 2027). A new project — not a resubmit of the Drew's Slime Storyteller. It reuses the proven Ember/Worker pattern from that project: a thin, strict shell around one model call.
 
 ## The problem
 
@@ -42,8 +42,8 @@ The app uses Muse Ember (`muse-ember-1.0`) through the Meta Model API, called fr
 
 1. **Structured input.** The parent picks a value, language, character, and setting from buttons instead of typing free text, which limits prompt injection and off-topic requests. The Worker accepts only those four fields and only exact allowlist matches (case-sensitive). Anything else is rejected with a 400 before Ember is ever called.
 2. **Constrained generation.** A system prompt fixes the age range (3 to 5), reading level, warm gentle playful tone, and banned topics (violence, frightening imagery, romance, death, substances, real brands, real people), and requires a positive, calm ending. The story must be exactly two sentences, 25–60 words, contain the character's name, say how something feels, and be told in the chosen language.
-3. **Output verification (code, not a model).** The Worker checks every story before a child sees it: exactly 2 sentence terminators, ends with a period, no question mark, 25–60 words, must contain the character's name, no digits, no links, no banned words or phrases (checked word by word, so a kind word is never caught by accident). A failed story gets one retry naming the broken rule, then the Worker answers 502 and the page falls back to a canned story. The page checks the live story once more against its own copy of the lists before showing it.
-4. **Rate limits.** 10 requests per minute per address, 100 per day per address, 500 per day total, max 200 tokens per story — so the budget cannot be drained. IP addresses are SHA-256 hashed and never stored raw.
+3. **Output verification (code, not a model).** The Worker checks every story before a child sees it: exactly 2 sentence terminators (one to three short sentences for Hawaiian, which says the same in fewer words), ends with a period, no question mark, 25–60 words (15–60 for Hawaiian), must contain the character's name, no digits, no links, no banned words or phrases (checked word by word, so a kind word is never caught by accident). A failed story gets one retry naming the broken rule, then the Worker answers 502 and the page falls back to a canned story. The page checks the live story once more against its own copy of the lists before showing it.
+4. **Rate limits.** 10 requests per minute per address, 100 per day per address, 500 per day total, max 800 tokens per story — so the budget cannot be drained. IP addresses are SHA-256 hashed and never stored raw.
 5. **Privacy.** No personal data is collected from children, in line with COPPA principles. There is no free-text field, no account, no open-ended conversation with a preschooler. The only thing sent to Ember is the parent's four button picks.
 
 **Cost:** about $0.00006 per story (~300 input / 60 output tokens at $0.10/M in, $0.50/M out). Roughly 160,000 stories on $10.
